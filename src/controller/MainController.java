@@ -25,6 +25,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -106,6 +108,7 @@ public class MainController implements Initializable {
 
 		items_table.setItems(item_manager.getItemsObservableList());
 		
+		// detect delete button press
 		items_table.setOnKeyPressed(new EventHandler<KeyEvent>() {
 	        public void handle(KeyEvent ke) {
 	            if (ke.getCode() == KeyCode.DELETE) {
@@ -113,6 +116,13 @@ public class MainController implements Initializable {
 	            }
 	        }
 	    });
+		
+		// detect item double click
+		items_table.setOnMouseClicked((MouseEvent event) -> {
+            if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2){
+                showSelectedItemDetails();
+            }
+        });
 	}
 	
 	/******************************** Buttons *************************************/
@@ -122,19 +132,7 @@ public class MainController implements Initializable {
 	
 	/******************************* Edit Menu ************************************/
 	public void itemDetails(ActionEvent event) {
-		try {
-			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/DetailsWindow.fxml"));
-			Parent parent = fxmlLoader.load();
-	        Scene scene = new Scene(parent);
-	        
-	        Stage stage = new Stage();
-	        stage.setTitle("Item Details");
-	        stage.initModality(Modality.APPLICATION_MODAL);
-	        stage.setScene(scene);
-	        stage.showAndWait();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		showSelectedItemDetails();
 	}
 	
 	public void addItem(ActionEvent event) {
@@ -222,6 +220,26 @@ public class MainController implements Initializable {
 	}
 	
 	/******************************* Common ************************************/
+	private void showSelectedItemDetails() {
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/DetailWindow.fxml"));
+			Parent parent = fxmlLoader.load();
+	        Scene scene = new Scene(parent);
+	        
+	        Stage stage = new Stage();
+	        stage.setTitle("Item Details");
+	        
+	        DetailController controller = fxmlLoader.getController();
+   			controller.setSelectedItem(items_table.getSelectionModel().getSelectedItem());
+   			
+	        stage.initModality(Modality.APPLICATION_MODAL);
+	        stage.setScene(scene);
+	        stage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void deleteSelected() {
 		Item item = null;
 		if((item = items_table.getSelectionModel().getSelectedItem()) != null) {
