@@ -24,6 +24,7 @@ public class Warehouse extends Application {
 			Parent root = FXMLLoader.load(getClass().getResource("/view/MainWindow.fxml"));
 			Scene scene = new Scene(root);
 			primaryStage.setTitle("Warehouse");
+			primaryStage.setMaximized(true);
 			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {

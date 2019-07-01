@@ -41,7 +41,7 @@
       </MenuBar>
       <HBox alignment="CENTER" VBox.vgrow="NEVER">
          <children>
-            <TextField promptText="Search" HBox.hgrow="ALWAYS">
+            <TextField fx:id="search_field" promptText="Search" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="10.0" right="10.0" />
                </HBox.margin>

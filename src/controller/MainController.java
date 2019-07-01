@@ -11,6 +11,8 @@ import model.CSVFileManager;
 import model.DatabaseManager;
 import model.Item;
 import model.ItemManager;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -18,10 +20,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -55,7 +57,7 @@ public class MainController implements Initializable {
 	private TableView<Item> items_table;
 	
 	@FXML
-	private ContextMenu table_rc_menu;
+	private TextField search_field;
 	
 	private ItemManager item_manager;
 
@@ -105,8 +107,6 @@ public class MainController implements Initializable {
             	t.getRowValue().setQuantity(t.getNewValue());
             }
         });
-
-		items_table.setItems(item_manager.getItemsObservableList());
 		
 		// detect delete button press
 		items_table.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -123,11 +123,38 @@ public class MainController implements Initializable {
                 showSelectedItemDetails();
             }
         });
+		
+		updateTable();
+
+        // Listen for text changes in the filter text field
+		search_field.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                    String oldValue, String newValue) {
+            	item_manager.setFilterText(search_field.getText());
+                item_manager.updateFilteredData();
+                reapplyTableSortOrder();
+            }
+        });
 	}
 	
 	/******************************** Buttons *************************************/
 	public void filterItems(ActionEvent event) {
-		
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/FilterDialog.fxml"));
+			Parent parent = fxmlLoader.load();
+	        Scene scene = new Scene(parent);
+	        
+	        Stage stage = new Stage();
+	        stage.setTitle("Filters");
+	        stage.initModality(Modality.APPLICATION_MODAL);
+	        stage.setScene(scene);
+	        stage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		item_manager.updateFilteredData();
+		reapplyTableSortOrder();
 	}
 	
 	/******************************* Edit Menu ************************************/
@@ -219,7 +246,7 @@ public class MainController implements Initializable {
 		System.exit(0);
 	}
 	
-	/******************************* Common ************************************/
+	/******************************* Private ************************************/
 	private void showSelectedItemDetails() {
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/DetailWindow.fxml"));
@@ -244,7 +271,7 @@ public class MainController implements Initializable {
 		Item item = null;
 		if((item = items_table.getSelectionModel().getSelectedItem()) != null) {
 			item_manager.deleteItem(item);
-			items_table.setItems(item_manager.getItemsObservableList());
+			updateTable();
 		}
 	}
 	
@@ -252,4 +279,10 @@ public class MainController implements Initializable {
 		items_table.setItems(item_manager.getItemsObservableList());
 		items_table.refresh();
 	}
+	
+	private void reapplyTableSortOrder() {
+        ArrayList<TableColumn<Item, ?>> sortOrder = new ArrayList<>(items_table.getSortOrder());
+        items_table.getSortOrder().clear();
+        items_table.getSortOrder().addAll(sortOrder);
+    }
 }
